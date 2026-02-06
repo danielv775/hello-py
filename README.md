@@ -84,14 +84,15 @@ Following 10 sequential test iterations using **Claude 3.5 Sonnet**, the benchma
 
 **Analysis:** Successes were characterized by concise, "first-time right" indexing. Failures typically involved a minor dimension mismatch (e.g., `expand` errors) which triggered a self-correction loop that eventually hit the 2,900-token limit.
 
-Run,Status,Observation
-1,✗ FAILURE,[LIMIT REACHED] Hit 2900 token limit
-2,✗ FAILURE,[LIMIT REACHED] Hit 2900 token limit
-3,✓ SUCCESS,Got VERIFIED
-4,✗ FAILURE,[LIMIT REACHED] Hit 2900 token limit
-5,✗ FAILURE,[LIMIT REACHED] Hit 2900 token limit
-6,✓ SUCCESS,Got VERIFIED
-7,✗ FAILURE,[LIMIT REACHED] Hit 2900 token limit
-8,✗ FAILURE,[LIMIT REACHED] Hit 2900 token limit
-9,✓ SUCCESS,Got VERIFIED
-10,✓ SUCCESS,Got VERIFIED
+| Run | Status | Observation |
+| :--- | :--- | :--- |
+| 1 | ✗ FAILURE | [LIMIT REACHED] Hit 2900 token limit |
+| 2 | ✗ FAILURE | [LIMIT REACHED] Hit 2900 token limit |
+| 3 | ✓ SUCCESS | Got VERIFIED |
+| 4 | ✗ FAILURE | [LIMIT REACHED] Hit 2900 token limit |
+| 5 | ✗ FAILURE | [LIMIT REACHED] Hit 2900 token limit |
+| 6 | ✓ SUCCESS | Got VERIFIED |
+| 7 | ✗ FAILURE | [LIMIT REACHED] Hit 2900 token limit |
+| 8 | ✗ FAILURE | [LIMIT REACHED] Hit 2900 token limit |
+| 9 | ✓ SUCCESS | Got VERIFIED |
+| 10 | ✓ SUCCESS | Got VERIFIED |
