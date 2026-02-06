@@ -8,7 +8,16 @@ from typing import Any, TypedDict
 from anthropic import AsyncAnthropic
 from anthropic.types import MessageParam, ToolUnionParam
 
-MAX_TOKENS = 1000
+from tasks.paged_attention import PAGED_ATTN_PROMPT
+
+
+"""
+The PagedAttention task was tuned to a ~40% success rate 
+by constraining the token budget to 2900. This requires the agent 
+to produce a precise, vectorized implementation on the first or second attempt, 
+effectively penalizing inefficient or logically flawed 'hallucination' loops.
+"""
+MAX_TOKENS = 2900
 
 
 class PythonExpressionToolResult(TypedDict):
@@ -73,20 +82,27 @@ async def run_agent_loop(
     for step in range(max_steps):
         if verbose:
             print(f"\n=== Step {step + 1}/{max_steps} ===")
-
+        
         response = await client.messages.create(
-            model=model, max_tokens=MAX_TOKENS, tools=tools, messages=messages
+            model=model, 
+            max_tokens=MAX_TOKENS, 
+            tools=tools, 
+            messages=messages
         )
 
-        assert response.stop_reason in ["max_tokens", "tool_use", "end_turn"], (
-            f"unsupported stop_reason {response.stop_reason}"
-        )
+        # 1. Check for 'max_tokens' first
         if response.stop_reason == "max_tokens":
             print(
-                f"Model reached max_tokens limit {MAX_TOKENS}. Increase "
-                "MAX_TOKENS, simplify your task, or update the code to provide "
-                "a message back to the model when it exceeds MAX_TOKENS."
+                f"\n[LIMIT REACHED] Model hit the {MAX_TOKENS} token limit. "
+                "This iteration will be marked as a Failure."
             )
+            # Returning None ensures the 'run_single_test' function records a FAILURE
+            return None 
+
+        # 2. Support only valid continuing reasons
+        if response.stop_reason not in ["tool_use", "end_turn"]:
+            print(f"!!! Warning: Unexpected stop_reason: {response.stop_reason}")
+            return None
 
         # Track if we need to continue
         has_tool_use = False
@@ -109,43 +125,66 @@ async def run_agent_loop(
                     # Extract arguments based on tool
                     handler = tool_handlers[tool_name]
                     tool_input = content.input
-
-                    # Call the appropriate tool handler
-                    if tool_name == "python_expression":
-                        assert (
-                            isinstance(tool_input, dict) and "expression" in tool_input
-                        )
-                        if verbose:
-                            print("\nInput:")
-                            print("```")
-                            for line in tool_input["expression"].split("\n"):
-                                print(f"{line}")
-                            print("```")
-                        result = handler(tool_input["expression"])
-                        if verbose:
-                            print("\nOutput:")
-                            print("```")
-                            print(result)
-                            print("```")
-                    elif tool_name == "submit_answer":
-                        assert isinstance(tool_input, dict) and "answer" in tool_input
-                        result = handler(tool_input["answer"])
-                        submitted_answer = result["answer"]
+                
+                # Call the appropriate tool handler
+                if tool_name == "python_expression":
+                    # Use .get() to avoid crashing if the model makes a formatting error
+                    expression = tool_input.get("expression") if isinstance(tool_input, dict) else tool_input
+                    
+                    if not expression or not isinstance(expression, str):
+                        result = {"result": None, "error": "Invalid or missing 'expression' input."}
                     else:
-                        # Generic handler call
-                        result = (
-                            handler(**tool_input)
-                            if isinstance(tool_input, dict)
-                            else handler(tool_input)
-                        )
+                        try:
+                            # Wrap the execution in a try block
+                            result = handler(expression) 
+                            if verbose:
+                                print("\nInput Code:")
+                                print("```python")
+                                print(expression)
+                                print("```")
+                                                
+                            if verbose:
+                                print("\nOutput:")
+                                print("```")
+                                print(result)
+                                print("```")
 
-                    tool_results.append(
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": content.id,
-                            "content": json.dumps(result),
-                        }
-                    )
+                        except Exception as e:
+                            # Capture the crash and send it back to the model as an observation
+                            result = {"result": None, "error": f"Python Execution Error: {str(e)}"}
+                            if verbose:
+                                print(f"!!! Model's code crashed: {e}")
+
+                elif tool_name == "submit_answer":
+                    # Extract answer safely
+                    answer = tool_input.get("answer") if isinstance(tool_input, dict) else tool_input
+                    
+                    if answer is None:
+                        result = {"answer": None, "error": "No answer provided to submit_answer."}
+                    else:
+                        result = handler(answer)
+                        submitted_answer = result["answer"]
+
+                else:
+                    # Generic handler call
+                    try:
+                        if isinstance(tool_input, dict):
+                            result = handler(**tool_input)
+                        else:
+                            result = handler(tool_input)
+                    except Exception as e:
+                        result = {"error": f"Tool execution failed: {str(e)}"}
+
+                # IMPORTANT: This must remain active so the model sees the results!
+                tool_results.append(
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": content.id,
+                        "content": json.dumps(result),
+                    }
+                )
+
+
 
         # If we have tool uses, add them to the conversation
         if has_tool_use:
@@ -185,7 +224,7 @@ async def run_single_test(
         prompt=prompt,
         tools=tools,
         tool_handlers=tool_handlers,
-        max_steps=5,
+        max_steps=20,
         verbose=verbose,
     )
 
@@ -233,8 +272,8 @@ async def main(concurrent: bool = True):
 
     # Run the test 10 times and track success rate
     num_runs = 10
-    expected_answer = 8769
-    prompt = "Calculate (2^10 + 3^5) * 7 - 100. Use the python_expression tool and then submit the answer."
+    expected_answer = "VERIFIED"
+    prompt = PAGED_ATTN_PROMPT
 
     execution_mode = "concurrently" if concurrent else "sequentially"
     print(f"Running {num_runs} test iterations {execution_mode}...")
@@ -283,4 +322,4 @@ async def main(concurrent: bool = True):
 
 if __name__ == "__main__":
     # Set to True for concurrent execution, False for sequential execution
-    asyncio.run(main(concurrent=True))
+    asyncio.run(main(concurrent=False))
