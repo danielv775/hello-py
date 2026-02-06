@@ -84,6 +84,9 @@ Following 10 sequential test iterations using **Claude 3.5 Sonnet**, the benchma
 
 **Analysis:** Successes were characterized by concise, "first-time right" indexing. Failures typically involved a minor dimension mismatch (e.g., `expand` errors) which triggered a self-correction loop that eventually hit the 2,900-token limit.
 
+Each run takes about 15mins due to running sequentially due to token per minute limit.
+
+Run 1
 | Run | Status | Observation |
 | :--- | :--- | :--- |
 | 1 | ✗ FAILURE | [LIMIT REACHED] Hit 2900 token limit |
@@ -96,3 +99,16 @@ Following 10 sequential test iterations using **Claude 3.5 Sonnet**, the benchma
 | 8 | ✗ FAILURE | [LIMIT REACHED] Hit 2900 token limit |
 | 9 | ✓ SUCCESS | Got VERIFIED |
 | 10 | ✓ SUCCESS | Got VERIFIED |
+
+1. 40%
+2. 10%
+3. 30%
+4. 30%
+5. 20%
+6. 30%
+7. 20%
+8. 30%
+9. 50%
+10. 20%
+
+Avg Pass Rate: 28%
