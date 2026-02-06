@@ -83,18 +83,3 @@ Following 10 sequential test iterations using **Claude 3.5 Sonnet**, the benchma
 | **Primary Failure Mode** | Resource Exhaustion (Max Tokens) |
 
 **Analysis:** Successes were characterized by concise, "first-time right" indexing. Failures typically involved a minor dimension mismatch (e.g., `expand` errors) which triggered a self-correction loop that eventually hit the 2,900-token limit.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-* **Python 3.13+**
-* **uv** for fast dependency management
-* **Anthropic API Key**
-
-### Installation
-```bash
-git clone [https://github.com/danielv775/hello-py.git](https://github.com/danielv775/hello-py.git)
-cd hello-py
-uv sync
