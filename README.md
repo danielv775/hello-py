@@ -84,41 +84,14 @@ Following 10 sequential test iterations using **Claude 3.5 Sonnet**, the benchma
 
 **Analysis:** Successes were characterized by concise, "first-time right" indexing. Failures typically involved a minor dimension mismatch (e.g., `expand` errors) which triggered a self-correction loop that eventually hit the 2,900-token limit.
 
-Running 10 test iterations sequentially...
-
-============================================================
-
-[LIMIT REACHED] Model hit the 2900 token limit.
-✗ Run 1: FAILURE - Got None, expected VERIFIED
-
-[LIMIT REACHED] Model hit the 2900 token limit.
-✗ Run 2: FAILURE - Got None, expected VERIFIED
-
-✓ Run 3: SUCCESS - Got VERIFIED
-
-[LIMIT REACHED] Model hit the 2900 token limit.
-✗ Run 4: FAILURE - Got None, expected VERIFIED
-
-[LIMIT REACHED] Model hit the 2900 token limit.
-✗ Run 5: FAILURE - Got None, expected VERIFIED
-
-✓ Run 6: SUCCESS - Got VERIFIED
-
-[LIMIT REACHED] Model hit the 2900 token limit.
-✗ Run 7: FAILURE - Got None, expected VERIFIED
-
-[LIMIT REACHED] Model hit the 2900 token limit.
-✗ Run 8: FAILURE - Got None, expected VERIFIED
-
-✓ Run 9: SUCCESS - Got VERIFIED
-
-✓ Run 10: SUCCESS - Got VERIFIED
-
-============================================================
-
-Test Results:
-  Passed: 4/10
-  Failed: 6/10
-  Pass Rate: 40.0%
-
-============================================================
+Run,Status,Observation
+1,✗ FAILURE,[LIMIT REACHED] Hit 2900 token limit
+2,✗ FAILURE,[LIMIT REACHED] Hit 2900 token limit
+3,✓ SUCCESS,Got VERIFIED
+4,✗ FAILURE,[LIMIT REACHED] Hit 2900 token limit
+5,✗ FAILURE,[LIMIT REACHED] Hit 2900 token limit
+6,✓ SUCCESS,Got VERIFIED
+7,✗ FAILURE,[LIMIT REACHED] Hit 2900 token limit
+8,✗ FAILURE,[LIMIT REACHED] Hit 2900 token limit
+9,✓ SUCCESS,Got VERIFIED
+10,✓ SUCCESS,Got VERIFIED
