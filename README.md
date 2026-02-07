@@ -47,7 +47,7 @@ The primary challenge is the **PagedAttention Decoding Kernel**, a critical comp
 ---
 
 ## 🎯 The "Goldilocks" Benchmark
-Unlike generic coding tasks where models often achieve 80-90% success, this task is specifically tuned to a **40% Success Rate**. 
+Unlike generic coding tasks where models often achieve 80-90% success, this task is specifically tuned to a ~**28% Success Rate**. 
 
 This "Goldilocks" difficulty is a deliberate design choice achieved by enforcing a strict **2,900-token limit**. At this threshold:
 * **Precision is Rewarded:** The agent has enough "budget" to implement the solution correctly if it has a strong internal model of the tensor math.
